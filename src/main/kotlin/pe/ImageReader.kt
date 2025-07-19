@@ -19,7 +19,6 @@ class ImageReader(file: File) {
         require(stream.readUShort() == MZ_SIGNATURE) { "PE file does not start with 0x4D5A (MZ) signature" }
 
         stream.skipBytes(58)
-
         val peOffset = stream.readUInt()
         stream.seek(peOffset.toLong())
 
@@ -33,28 +32,16 @@ class ImageReader(file: File) {
 
         val characteristics = stream.readUShort()
         val (subsystem, dllCharacteristics) = readOptionalHeaders()
-        readSections(sections)
-
         image.kind = getModuleKind(characteristics, subsystem)
         image.characteristics = characteristics
+
+        readSections(sections)
 
         stream.close()
     }
 
     private fun readArchitecture(): TargetArchitecture {
         return TargetArchitecture.fromValue(stream.readUShort())
-    }
-
-    private fun getModuleKind(characteristics: UShort, subsystem: UShort): ModuleKind {
-        if (characteristics has 0x2000) {
-            return ModuleKind.Dll
-        }
-
-        if (subsystem == 0x02.toUShort() || subsystem == 0x09.toUShort()) {
-            return ModuleKind.Windows
-        }
-
-        return ModuleKind.Console
     }
 
     private fun readOptionalHeaders(): Pair<UShort, UShort> {
@@ -113,6 +100,18 @@ class ImageReader(file: File) {
 
     private fun readDataDirectory(): DataDirectory {
         return DataDirectory(stream.readUInt(), stream.readUInt())
+    }
+
+    private fun getModuleKind(characteristics: UShort, subsystem: UShort): ModuleKind {
+        if (characteristics has 0x2000) {
+            return ModuleKind.Dll
+        }
+
+        if (subsystem == 0x02.toUShort() || subsystem == 0x09.toUShort()) {
+            return ModuleKind.Windows
+        }
+
+        return ModuleKind.Console
     }
 
     private fun RandomAccessFile.readUShort(): UShort {
