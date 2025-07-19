@@ -46,7 +46,7 @@ class ImageReader(file: File) {
     }
 
     private fun getModuleKind(characteristics: UShort, subsystem: UShort): ModuleKind {
-        if (characteristics hasFlag 0x2000) {
+        if (characteristics has 0x2000) {
             return ModuleKind.Dll
         }
 
@@ -129,11 +129,5 @@ class ImageReader(file: File) {
         return (high shl 16) or low
     }
 
-    private fun readDataDirectory(): DataDirectory {
-        return DataDirectory(stream.readUInt(), stream.readUInt())
-    }
-
-    private infix fun UShort.hasFlag(flag: Int): Boolean {
-        return (this.toInt() and flag) != 0
-    }
+    private infix fun UShort.has(flag: Int): Boolean = (this.toInt() and flag) != 0
 }
