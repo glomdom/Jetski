@@ -111,6 +111,10 @@ class ImageReader(file: File) {
         image.sections = sections
     }
 
+    private fun readDataDirectory(): DataDirectory {
+        return DataDirectory(stream.readUInt(), stream.readUInt())
+    }
+
     private fun RandomAccessFile.readUShort(): UShort {
         val b1 = this.readUnsignedByte()
         val b2 = this.readUnsignedByte()
